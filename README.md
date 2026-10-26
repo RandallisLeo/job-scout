@@ -1,120 +1,45 @@
 # Job Scout
 
-### 把分散的求职搜索规则，变成可以直接选择的操作。
+### Less setup. More searching.
 
-[在线体验 ↗](https://job-scout-search.vercel.app/)
+[Try Job Scout ↗](https://job-scout-search.vercel.app/)
 
-Job Scout 是我从自己的求职搜索需求出发设计的工具。它让用户在 Google、X、YC 和 a16z 之间切换，用选项组织职位、地点和其他偏好，再打开对应平台的搜索结果。
+Job Scout turns the setup for searching across Google, X, YC, and a16z into simple choices. I designed it around my own job search, with the goal of reducing repeated typing and making preferences easier to reuse.
 
-我想解决的是搜索开始之前的负担：重复填写条件、记住不同平台的规则，以及检查这些条件究竟有没有生效。
+**My role:** Problem framing, product and interaction design, and iterative review, with Codex supporting implementation, testing, and deployment.
 
-**我的角色：** 问题定义、产品与交互设计、实际使用中的检查和迭代；借助 Codex 完成代码实现、调试与部署。  
-**当前状态：** 已上线到 Vercel。本仓库记录项目介绍与设计思路。
+![Job Scout: search sources on the left, selectable filters in the center, and a live search summary on the right](docs/images/job-scout.png)
 
-![Job Scout：左侧选择搜索来源，中间设置条件，右侧确认并搜索](docs/images/job-scout.png)
+## 1. Finding the friction
 
-## 1. 同一个求职意图，需要被重复翻译
+I wanted to find Product Designer and UX Designer opportunities across company career pages, startup job boards, and hiring posts. Each platform made me express the same intent differently.
 
-我最初的需求很具体：搜索 Product Designer、UX Designer 等相关职位，找到公司官网的岗位，也看到团队在 X 上直接发布的招聘信息。
+I focused on three questions: How could I reduce repeated input? What could carry over between platforms? How could users see what their search would actually include?
 
-但换一个平台，这个需求就要重新表达一次：
+## 2. Making choices easier than typing
 
-| 搜索入口 | 我需要处理的差异 |
-| --- | --- |
-| Google | 组合职位关键词、招聘网站域名、地点和时间条件 |
-| X | 寻找帖子里的招聘表达；发帖人可能写 `hiring`、`join our team`，地点也可能用缩写 |
-| YC / Work at a Startup | 将职位意图对应到 Role、Type 等原生分类，并使用它自己的筛选项 |
-| a16z | 区分职位关键词和 Roles 分类，同时处理地点、公司阶段、薪资等原生筛选 |
+An early version offered plenty of search fields, but still required too much effort to get started. I shifted toward visible options: suggested titles, hiring phrases, locations, and common filters.
 
-这让我把问题拆成三部分：**条件怎么输入、跨平台怎么复用、跳转后怎么保证含义一致。**
+Frequently used choices appear first, with **Show more** for longer lists and custom input when needed. Users can start with a few selections and refine their search as they go.
 
-仅仅把四个网站放在一起，还不能解决这些问题。
+## 3. Reusing intent across platforms
 
-## 2. 把“我应该输入什么”变成“我可以选择什么”
+I realized that carrying over preferences required understanding what each platform could support. A job title might become a keyword on one platform and a role category on another.
 
-早期的 X 页面接近高级搜索表单：用户需要面对关键词输入框和多个搜索字段。即使功能齐全，我还是要想该填什么、词语怎么组合。对于“找 Product Designer 或 UX Designer 的招聘帖子”这样简单的意图，这一步太重了。
+I designed compatible preferences to carry over automatically, while keeping platform-specific choices separate and making unapplied conditions available to review.
 
-我调整了默认操作方式：
+## 4. Keeping the next action clear
 
-- **职位直接选择。** 已填写的职位继续可用，相关职位作为建议，额外职位仍可自行添加。
-- **招聘表达提供预设。** `Hiring`、`Join our team`、`Open role` 等可直接勾选，也能补充个性化词语。
-- **常见条件直接展开。** 地点、工作方式、语言等优先用可见选项，减少打开下拉菜单和重复打字。
-- **长列表渐进展开。** 常用选项先出现，更多选项放入 `Show more`；已选项仍然可见。
-- **高级设置保持可见，但允许跳过。** 用户不必填完整张表才能开始搜索。
+As the tool grew, I removed large headings and repetitive explanations so users could reach the controls immediately.
 
-例如，用户选择两个职位和 `Hiring` 后，工具负责生成类似下面的 X 搜索组合：
+A live summary shows the current search and provides a direct way back to each setting. Selection counts, a visible search button, and returning to the top when switching platforms help users stay oriented.
 
-```text
-((product designer) OR (ux designer)) hiring
-```
+## 5. What I built and learned
 
-用户表达的是“这些职位中的任意一个”；组合规则由工具承担。自定义输入保留给预设没有覆盖的需求。
+Job Scout is live on Vercel. It saves preferences in the browser and opens searches on the selected platform. It does not aggregate or verify job listings.
 
-## 3. 复用的是意图，转换规则必须因平台而异
+The design evolved through my own use, checking destination filters, and functional testing. Formal usability research and measured efficiency gains are still ahead.
 
-迭代中暴露了一个关键问题：把已有条件原样带过去，并不代表搜索正确。
+My main takeaway: making a tool simpler means deciding which work it can handle for the user—and making the remaining choices easy to understand.
 
-### X：帖子中的地点不是结构化的岗位地点
-
-我看到一条招聘帖子写的是 `U.S.`。如果只搜索 `United States`，就可能漏掉这种表达。
-
-因此，选择 United States 时，工具会将常见写法扩展为一组可替代的关键词：
-
-```text
-("United States" OR "US" OR "U.S." OR "USA" OR "U.S.A.")
-```
-
-同时，我保留了地点作为可选条件。很多招聘帖子根本不写地点，`US` 也可能匹配普通英文单词 `us`。扩展别名有助于覆盖不同写法，但不能保证帖子对应的岗位就在美国。界面需要说明这一点，而不能把文本搜索表现成经过核实的地点筛选。
-
-### a16z：搜索框有文字，不等于 Roles 已选中
-
-一次实际跳转中，`Product Designer` 已出现在 a16z 的搜索框里，但原站的 **Roles 仍然为空**。
-
-这说明关键词和岗位分类是两个独立条件。后续实现将可识别的设计职位映射到原站对应分类，并分别生成参数。遇到不能可靠映射的职位，就保留关键词，不凭空创造分类。
-
-这里还有一个需要保留的差异：X 可以组合多个职位，而当前 a16z 入口让用户从已保存的职位中选择一个再搜索。共享信息不意味着强迫所有平台拥有完全相同的行为。
-
-### YC：先确认具体入口，再对应筛选
-
-YC 的公司目录和 Work at a Startup 的 Companies & jobs 页面并不是同一套筛选。项目最终以 Work at a Startup 为入口，将职位对应到 Role / Type，并接入适用的工作类型、经验、公司规模与阶段等条件。
-
-这些经历让我确定了一条规则：**自动延用可以确认兼容的条件，把分类映射和未应用的条件留给用户查看。** 平台专属设置单独保存，切换来源时不要求从头填写，也不把没有生效的条件当作已经应用。
-
-## 4. 让用户快速开始，也能看懂当前搜索
-
-当筛选项增加，另一个问题出现了：解释、标题和状态提示开始挤占真正操作的位置。我继续调整信息层级，让页面优先回答两个问题：**现在可以选什么？这次会搜索什么？**
-
-| 界面决定 | 对应的问题 |
-| --- | --- |
-| 左侧使用窄版纵向平台导航 | 让搜索来源始终容易识别，为表单留出空间 |
-| 移除重复大标题和通用说明 | 进入页面后直接看到可操作的条件 |
-| 偏好延用说明默认折叠，优先显示 applied 数量 | 先看到生效状态，需要时再检查映射细节 |
-| 每个区域展示已选数量 | 快速检查当前选择，不必逐项数标签 |
-| 右侧 Conclusion 实时总结，并保留搜索按钮 | 操作过程中随时确认范围并开始搜索 |
-| 点击总结项定位并短暂高亮对应区域 | 发现需要修改时，直接返回相应位置 |
-| 切换新平台后回到表单开头 | 避免沿用上一个页面的滚动位置，进入后即可开始 |
-
-这些细节服务于同一个方向：减少开始搜索所需的阅读、回忆和输入，同时保留检查与修改的入口。
-
-## 5. 当前实现与边界
-
-Job Scout 采用静态 HTML、CSS 和 JavaScript 实现，使用浏览器本地存储保存偏好，通过不同平台的搜索链接完成跳转。用户无需在 Job Scout 注册账号；目标平台可能要求登录。
-
-实现中将通用搜索、原生平台映射、地点选项和界面状态分开处理，并针对搜索组合与筛选映射加入回归检查。
-
-目前交付的是可使用的搜索工具，以及从真实搜索操作中逐步修正的交互。现阶段的验证来自我的实际使用、跳转检查和功能测试，尚没有正式的用户研究或搜索效率提升数据。
-
-它也有明确边界：
-
-- 不抓取或汇总岗位，不自动投递，也不验证岗位是否仍在招聘。
-- 搜索结果由目标平台决定；平台规则变化后，参数映射仍需维护。
-- 关键词、职位分类和实际岗位要求不完全等价；更多限制可能减少覆盖范围。
-- 偏好保存在当前浏览器和域名下，不自动跨设备同步。
-
-## 我从这个项目中得到的认识
-
-最初我希望把常用搜索条件集中起来。真正使用后才发现，简单操作的前提是先处理好隐藏的差异：哪些可以直接延用，哪些需要转换，哪些只能作为宽泛线索。
-
-因此，我对“简化”的判断不再只是表单有多短，而是用户能否少想一步、少填一次，并且知道这次选择实际上做了什么。
-
-**[体验 Job Scout ↗](https://job-scout-search.vercel.app/)**
+**[Explore the live tool ↗](https://job-scout-search.vercel.app/)**
